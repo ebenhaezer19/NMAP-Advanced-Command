@@ -1,4 +1,3 @@
-"# NMAP-Advanced-Command" 
 Certainly! `nmap` (Network Mapper) is a powerful tool for network discovery and security auditing. Below are some advanced commands and techniques that can be used with `nmap`:
 
 ### 1. **OS Detection**
