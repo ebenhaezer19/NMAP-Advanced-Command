@@ -8,7 +8,20 @@ import datetime
 from typing import List, Dict
 
 
-
+def print_banner(self):
+    banner = """
+\033[96m╔═══════════════════════════════════════════════════════════════╗
+║  _   _ __  __          _____   _____                           ║
+║ | \ | |  \/  |   /\   |  __ \ / ____|                         ║
+║ |  \| | \  / |  /  \  | |__) | |  __  ___ __ _ _ __  _ __    ║
+║ | . ` | |\/| | / /\ \ |  ___/| | |_ |/ __/ _` | '_ \| '_ \   ║
+║ | |\  | |  | |/ ____ \| |    | |__| | (_| (_| | | | | | | |  ║
+║ |_| \_|_|  |_/_/    \_\_|     \_____|\___\__,_|_| |_|_| |_|  ║
+║                                                               ║
+║           Advanced Vulnerability Scanner for Kali             ║
+╚═══════════════════════════════════════════════════════════════╝\033[0m
+"""
+    print(banner)
 
 class NmapAdvancedScanner:
     def __init__(self):
@@ -104,7 +117,6 @@ class NmapAdvancedScanner:
             "6": {"name": "Insane", "cmd": "-T5"}
         }
 
-        # Previous vulnerability categories remain the same
         self.vuln_categories = {
             "Web Applications": [
                 ("http-sql-injection", "SQL Injection Scanner"),
@@ -125,20 +137,30 @@ class NmapAdvancedScanner:
                 ("http-form-brute", "HTTP Form Bruteforce")
             ]
         }
-    def print_banner(self):
-        banner = """
-\033[96m╔═══════════════════════════════════════════════════════════════╗
-║  _   _ __  __          _____   _____                           ║
-║ | \ | |  \/  |   /\   |  __ \ / ____|                         ║
-║ |  \| | \  / |  /  \  | |__) | |  __  ___ __ _ _ __  _ __    ║
-║ | . ` | |\/| | / /\ \ |  ___/| | |_ |/ __/ _` | '_ \| '_ \   ║
-║ | |\  | |  | |/ ____ \| |    | |__| | (_| (_| | | | | | | |  ║
-║ |_| \_|_|  |_/_/    \_\_|     \_____|\___\__,_|_| |_|_| |_|  ║
-║                                                               ║
-║           Advanced Vulnerability Scanner for Kali             ║
-╚═══════════════════════════════════════════════════════════════╝\033[0m
-"""
-        print(banner)
+
+    def add_target(self):
+        target = input("\033[93m[+] Enter target IP or domain: \033[0m")
+        if target:
+            self.targets.append(target)
+            print(f"\033[92m[✓] Target added: {target}\033[0m")
+        else:
+            print("\033[91m[!] Invalid target.\033[0m")
+
+    def remove_target(self):
+        target = input("\033[93m[+] Enter target IP or domain to remove: \033[0m")
+        if target in self.targets:
+            self.targets.remove(target)
+            print(f"\033[92m[✓] Target removed: {target}\033[0m")
+        else:
+            print("\033[91m[!] Target not found.\033[0m")
+
+    def list_targets(self):
+        if not self.targets:
+            print("\033[91m[!] No targets added.\033[0m")
+        else:
+            print("\033[94m[+] List of targets:\033[0m")
+            for idx, target in enumerate(self.targets, 1):
+                print(f"{idx}. {target}")
 
     def configure_port_scan(self) -> dict:
         print("\n\033[95m[*] Port Scan Configuration:\033[0m")
@@ -238,48 +260,34 @@ class NmapAdvancedScanner:
 4. Port Scan
 5. Vulnerability Scan
 6. View Scan History
-7. Export Results
-8. Clear Screen
-9. Exit
-
+7. Exit
 """
         print(menu)
 
-    # All previous methods remain the same, just update the run() method
-    def run(self):
-        while True:
-            self.print_banner()
-            self.print_menu()
-            
-            choice = input("\033[93m[+] Enter your choice (1-9): \033[0m")
-            
-            if choice == '1':
-                self.add_target()
-            elif choice == '2':
-                self.remove_target()
-            elif choice == '3':
-                self.list_targets()
-            elif choice == '4':
-                scan_config = self.configure_port_scan()
-                self.run_port_scan(scan_config)
-            elif choice == '5':
-                selected_scripts = self.select_vuln_scripts()
-                self.run_scan(selected_scripts)
-            elif choice == '6':
-                self.view_scan_history()
-            elif choice == '7':
-                self.export_results()
-            elif choice == '8':
-                self.clear_screen()
-            elif choice == '9':
-                print("\n\033[92m[✓] Thank you for using Advanced Nmap Scanner. Goodbye!\033[0m")
-                sys.exit(0)
-            else:
-                print("\033[91m[!] Invalid choice. Please try again.\033[0m")
-            
-            input("\n\033[93mPress Enter to continue...\033[0m")
-            self.clear_screen()
+    def execute_option(self, option: str):
+        if option == '1':
+            self.add_target()
+        elif option == '2':
+            self.remove_target()
+        elif option == '3':
+            self.list_targets()
+        elif option == '4':
+            scan_config = self.configure_port_scan()
+            self.run_port_scan(scan_config)
+        elif option == '5':
+            print("\033[93m[*] Vulnerability Scan not implemented yet.\033[0m")
+        elif option == '6':
+            print("\033[93m[*] View Scan History not implemented yet.\033[0m")
+        elif option == '7':
+            sys.exit("\033[92m[✓] Exiting...\033[0m")
+        else:
+            print("\033[91m[!] Invalid option.\033[0m")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     scanner = NmapAdvancedScanner()
-    scanner.run()
+    scanner.print_banner()
+    
+    while True:
+        scanner.print_menu()
+        user_option = input("\033[93m[+] Select an option: \033[0m")
+        scanner.execute_option(user_option)
