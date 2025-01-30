@@ -13,6 +13,15 @@ class NmapManager:
             "--data-length 100",  # Append random data to packets
             "--ttl 50",  # Set custom TTL value
         ]
+        self.vuln_scripts = [
+            "http-vuln-cve2006-3392",  # Example vuln script
+            "ssl-heartbleed",  # SSL vulnerability
+            "http-shellshock",  # Shellshock vulnerability
+            "smb-vuln-ms17-010",  # WannaCry SMB vulnerability
+            "ftp-anon",  # FTP anonymous login vulnerability
+            "ssh-brute",  # SSH brute-force vulnerability
+            # Add more vuln scripts as needed
+        ]
     
     def show_banner(self):
         banner = """
@@ -45,7 +54,7 @@ class NmapManager:
         for target in self.targets:
             print(f" - {target}")
     
-    def run_scan(self, scan_type="-sS", evasion=None, output_file=None):
+    def run_scan(self, scan_type="-sS", evasion=None, output_file=None, vuln_scripts=None):
         if not self.targets:
             print("No targets available.")
             return
@@ -53,7 +62,12 @@ class NmapManager:
         cmd = ["nmap", scan_type]
         if evasion:
             cmd.append(evasion)
-            
+        
+        # Add vuln scripts if provided
+        if vuln_scripts:
+            cmd.append("--script")
+            cmd.append(",".join(vuln_scripts))
+        
         # Add output file option if specified
         if output_file:
             cmd.extend(["-oN", output_file])
@@ -103,6 +117,11 @@ class NmapManager:
         result = subprocess.run(["git", "pull"], capture_output=True, text=True)
         print(result.stdout)
     
+    def list_vuln_scripts(self):
+        print("Available vulnerability scripts:")
+        for i, script in enumerate(self.vuln_scripts):
+            print(f"{i+1}. {script}")
+    
 if __name__ == "__main__":
     manager = NmapManager()
     manager.show_banner()
@@ -118,7 +137,8 @@ if __name__ == "__main__":
         print("6. Save Scan History")
         print("7. Clear Scan History")
         print("8. Update Script")
-        print("9. Exit")
+        print("9. List Vulnerability Scripts")
+        print("10. Exit")
         
         choice = input("Choose an option: ")
         
@@ -134,7 +154,13 @@ if __name__ == "__main__":
             scan_type = input("Enter scan type (default -sS): ") or "-sS"
             evasion = input("Enter evasion option (or leave blank): ")
             output_file = input("Enter output file name (or leave blank): ")
-            manager.run_scan(scan_type, evasion, output_file)
+            vuln_option = input("Do you want to run vulnerability scripts? (y/n): ").lower()
+            vuln_scripts = []
+            if vuln_option == "y":
+                manager.list_vuln_scripts()
+                vuln_choice = input("Enter the numbers of the scripts to use (comma separated): ")
+                vuln_scripts = [manager.vuln_scripts[int(i)-1] for i in vuln_choice.split(",")]
+            manager.run_scan(scan_type, evasion, output_file, vuln_scripts)
         elif choice == "5":
             manager.list_scan_history()
         elif choice == "6":
@@ -144,6 +170,8 @@ if __name__ == "__main__":
         elif choice == "8":
             manager.git_pull_update()
         elif choice == "9":
+            manager.list_vuln_scripts()
+        elif choice == "10":
             break
         else:
             print("Invalid choice, try again.")
