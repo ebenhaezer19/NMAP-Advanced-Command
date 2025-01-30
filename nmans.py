@@ -17,6 +17,35 @@ BANNER = r"""
 ╚═══════════════════════════════════════════════════╝
 """
 
+VULN_SCRIPTS = {
+    1: {'name': 'Default vuln scripts', 'script': 'vuln'},
+    2: {'name': 'SQL Injection', 'script': 'http-sql-injection,mysql-vuln*,ms-sql-info,ms-sql-empty-password'},
+    3: {'name': 'Cross-Site Scripting', 'script': 'http-stored-xss,http-phpself-xss,http-unsafe-output-escaping'},
+    4: {'name': 'Remote Code Execution', 'script': 'http-rce-jenkins,http-vuln-cve2017-5638'},
+    5: {'name': 'Authentication Bypass', 'script': 'auth-spoof,http-auth-finder,http-config-backup'},
+    6: {'name': 'Service Vulnerabilities', 'script': 'ftp-vuln*,http-vuln*,smtp-vuln*,ssh-auth-methods'},
+    7: {'name': 'All Vulnerability Scripts', 'script': 'vuln,auth-spoof,http-*,ftp-*,smtp-*,ssh-*'}
+}
+
+EVASION_OPTIONS = {
+    1: {'name': 'No Ping (-Pn)', 'option': '-Pn'},
+    2: {'name': 'Fragmented IP (-f)', 'option': '-f'},
+    3: {'name': 'Decoy Scan (-D)', 'option': '-D RND:5'},
+    4: {'name': 'Timing Template (-T0)', 'option': '-T0'},
+    5: {'name': 'Source Port Spoofing', 'option': '--source-port 53'},
+    6: {'name': 'Multiple Options', 'option': '-Pn -f -D RND:3 -T2'}
+}
+
+CONFIG_FILE = Path.home() / '.nmap_manager.json'
+SCAN_PROFILES = {
+    1: {'name': 'Quick Scan', 'command': 'nmap -T4 -F {evasion} {target}', 'desc': 'Fast scan of most common ports'},
+    2: {'name': 'Full Scan', 'command': 'nmap -p- -sV -O -T4 {evasion} {target}', 'desc': 'Full port scan with OS/service detection'},
+    3: {'name': 'Stealth Scan', 'command': 'nmap -sS -sV -T4 {evasion} {target}', 'desc': 'SYN stealth scan with service detection'},
+    4: {'name': 'UDP Scan', 'command': 'nmap -sU -T4 {evasion} {target}', 'desc': 'UDP port scan (requires root)'},
+    5: {'name': 'Vulnerability Scan', 'command': 'nmap --script {vuln_script} {evasion} {target}', 'desc': 'Vulnerability checks'},
+    6: {'name': 'Custom Scan', 'command': 'nmap {custom} {evasion} {target}', 'desc': 'Enter your own Nmap options'}
+}
+
 def show_menu():
     clear_screen()
     print(BANNER)
@@ -24,26 +53,16 @@ def show_menu():
 ╔══════════════════════════════╗
 ║ Main Menu                    ║
 ╠══════════════════════════════╣
-║ 1. Add Targets               ║
-║ 2. Edit Targets              ║
-║ 3. Delete Targets            ║
-║ 4. List Targets              ║
-║ 5. Select Scan Type          ║
-║ 6. Run Scan                  ║
-║ 7. View Scan History         ║
-║ 8. Exit                      ║
+║ 1. Add Targets              ║
+║ 2. Edit Targets             ║
+║ 3. Delete Targets           ║
+║ 4. List Targets             ║
+║ 5. Select Scan Type         ║
+║ 6. Run Scan                 ║
+║ 7. View Scan History        ║
+║ 8. Exit                     ║
 ╚══════════════════════════════╝
 """)
-
-CONFIG_FILE = Path.home() / '.nmap_manager.json'
-SCAN_PROFILES = {
-    1: {'name': 'Quick Scan', 'command': 'nmap -T4 -F {target}', 'desc': 'Fast scan of most common ports'},
-    2: {'name': 'Full Scan', 'command': 'nmap -p- -sV -O -T4 {target}', 'desc': 'Full port scan with OS/service detection'},
-    3: {'name': 'Stealth Scan', 'command': 'nmap -sS -sV -T4 {target}', 'desc': 'SYN stealth scan with service detection'},
-    4: {'name': 'UDP Scan', 'command': 'nmap -sU -T4 {target}', 'desc': 'UDP port scan (requires root)'},
-    5: {'name': 'Vulnerability Scan', 'command': 'nmap --script vuln {target}', 'desc': 'Common vulnerability checks'},
-    6: {'name': 'Custom Scan', 'command': 'nmap {custom} {target}', 'desc': 'Enter your own Nmap options'}
-}
 
 def load_targets():
     try:
@@ -91,7 +110,7 @@ def delete_targets(data):
 def list_targets(data):
     print("\n╔════════════ Target List ════════════╗")
     for i, target in enumerate(data['targets'], 1):
-        print(f"║ {i}. {target['address'].ljust(20)} - {target['notes']}") 
+        print(f"║ {i}. {target['address'].ljust(20)} - {target['notes']}")
     print("╚══════════════════════════════════════╝\n")
 
 def select_scan_type():
@@ -110,6 +129,34 @@ def select_scan_type():
     except (ValueError, KeyError):
         return SCAN_PROFILES[1]['command']
 
+def select_evasion_options():
+    clear_screen()
+    print("╔════════════ Evasion Options ════════════╗")
+    for num, option in EVASION_OPTIONS.items():
+        print(f"║ {num}. {option['name'].ljust(20)} - {option['option']}")
+    print("╚══════════════════════════════════════════╝")
+    
+    try:
+        choice = int(input("\nSelect evasion option (0 for none): "))
+        if choice == 0:
+            return ""
+        return EVASION_OPTIONS.get(choice, EVASION_OPTIONS[1])['option']
+    except (ValueError, KeyError):
+        return ""
+
+def select_vuln_scripts():
+    clear_screen()
+    print("╔════════════ Vulnerability Script Options ════════════╗")
+    for num, script in VULN_SCRIPTS.items():
+        print(f"║ {num}. {script['name'].ljust(25)} ║")
+    print("╚════════════════════════════════════════════════════╝")
+    
+    try:
+        choice = int(input("\nSelect vulnerability scan type: "))
+        return VULN_SCRIPTS.get(choice, VULN_SCRIPTS[1])['script']
+    except (ValueError, KeyError):
+        return VULN_SCRIPTS[1]['script']
+
 def run_scan(data, command):
     if not data['targets']:
         input("No targets! Add some first.")
@@ -117,6 +164,15 @@ def run_scan(data, command):
     
     list_targets(data)
     targets = input("Enter target numbers (comma-separated/all): ").strip()
+    
+    # Ask about evasion techniques
+    use_evasion = input("Do you want to use network evasion techniques? (y/n): ").lower()
+    evasion_opts = select_evasion_options() if use_evasion == 'y' else ""
+    
+    # For vulnerability scans, ask about script type
+    vuln_script = ""
+    if "script" in command:
+        vuln_script = select_vuln_scripts()
     
     if targets.lower() == 'all':
         selected = data['targets']
@@ -126,9 +182,9 @@ def run_scan(data, command):
     # Ask for ports to scan
     ports = input("Enter ports to scan (e.g., 80,443 or leave blank for all ports): ").strip()
     if ports:
-        command = command.format(custom=f"-p {ports}", target="{target}")
+        command = command.format(custom=f"-p {ports}", target="{target}", evasion=evasion_opts, vuln_script=vuln_script)
     else:
-        command = command.format(custom="", target="{target}")
+        command = command.format(custom="", target="{target}", evasion=evasion_opts, vuln_script=vuln_script)
     
     # Ask for file to save results
     filename = input("Enter filename to save the result (without extension): ").strip()
@@ -140,15 +196,16 @@ def run_scan(data, command):
         data['scan_history'].append(cmd)
         save_targets(data)
         
-        # Run scan and show output in terminal
-        print(f"Running scan on {target['address']} with command: {cmd}")
+        print(f"\nRunning scan on {target['address']}")
+        print(f"Command: {cmd}\n")
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
         
-        # Print the scan result directly to terminal
         print(result.stdout)
         
-        # Save the result to file
-        with open(f"{filename}.txt", "w") as f:
+        with open(f"{filename}.txt", "a") as f:
+            f.write(f"\n{'='*50}\n")
+            f.write(f"Scan Results for {target['address']}\n")
+            f.write(f"{'='*50}\n")
             f.write(result.stdout)
 
 def view_history(data):
