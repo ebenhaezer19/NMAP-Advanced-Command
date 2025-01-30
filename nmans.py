@@ -129,6 +129,11 @@ def run_scan(data, command):
         data['scan_history'].append(cmd)
         save_targets(data)
         
+        # Prompt user for custom port or use default
+        custom_ports = input("Enter ports to scan (e.g., 80,443 or leave blank for all ports): ").strip()
+        if custom_ports:
+            cmd = f"nmap -p {custom_ports} {target['address']}"
+        
         # Run scan and save output to a file
         scan_output = subprocess.run(cmd, shell=True, capture_output=True, text=True)
         
