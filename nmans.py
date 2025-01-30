@@ -105,7 +105,7 @@ def select_scan_type():
     try:
         choice = int(input("\nSelect scan type: "))
         if choice == 6:
-            custom = input("Enter custom Nmap options: ")
+            custom = input("Enter custom Nmap options (e.g., -p 80,443): ")
             return SCAN_PROFILES[6]['command'].format(custom=custom)
         return SCAN_PROFILES.get(choice, SCAN_PROFILES[1])['command']
     except (ValueError, KeyError):
