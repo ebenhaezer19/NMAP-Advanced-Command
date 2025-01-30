@@ -31,8 +31,7 @@ def show_menu():
 ║ 5. Select Scan Type          ║
 ║ 6. Run Scan                  ║
 ║ 7. View Scan History         ║
-║ 8. Update Tools from GitHub  ║
-║ 9. Exit                      ║
+║ 8. Exit                      ║
 ╚══════════════════════════════╝
 """)
 
@@ -92,7 +91,7 @@ def delete_targets(data):
 def list_targets(data):
     print("\n╔════════════ Target List ════════════╗")
     for i, target in enumerate(data['targets'], 1):
-        print(f"║ {i}. {target['address'].ljust(20)} - {target['notes']}")
+        print(f"║ {i}. {target['address'].ljust(20)} - {target['notes']}") 
     print("╚══════════════════════════════════════╝\n")
 
 def select_scan_type():
@@ -105,7 +104,7 @@ def select_scan_type():
     try:
         choice = int(input("\nSelect scan type: "))
         if choice == 6:
-            custom = input("Enter custom Nmap options (e.g., -p 80,443): ")
+            custom = input("Enter custom Nmap options: ")
             return SCAN_PROFILES[6]['command'].format(custom=custom)
         return SCAN_PROFILES.get(choice, SCAN_PROFILES[1])['command']
     except (ValueError, KeyError):
@@ -124,30 +123,33 @@ def run_scan(data, command):
     else:
         selected = [data['targets'][int(i)-1] for i in targets.split(',') if i.strip().isdigit()]
     
+    # Ask for ports to scan
+    ports = input("Enter ports to scan (e.g., 80,443 or leave blank for all ports): ").strip()
+    if ports:
+        command = command.format(custom=f"-p {ports}", target="{target}")
+    else:
+        command = command.format(custom="", target="{target}")
+    
+    # Ask for file to save results
+    filename = input("Enter filename to save the result (without extension): ").strip()
+    if not filename:
+        filename = "scan_result"
+    
     for target in selected:
         cmd = command.format(target=target['address'])
         data['scan_history'].append(cmd)
         save_targets(data)
         
-        # Prompt user for custom port or use default
-        custom_ports = input("Enter ports to scan (e.g., 80,443 or leave blank for all ports): ").strip()
-        if custom_ports:
-            cmd = f"nmap -p {custom_ports} {target['address']}"
+        # Run scan and show output in terminal
+        print(f"Running scan on {target['address']} with command: {cmd}")
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
         
-        # Run scan and save output to a file
-        scan_output = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        # Print the scan result directly to terminal
+        print(result.stdout)
         
-        # Ask for custom filename
-        filename = input("Enter filename to save the result (without extension): ").strip()
-        if not filename:
-            filename = f"scan_{target['address']}"
-        
-        file_path = Path(f"{filename}.txt")
-        with open(file_path, 'w') as f:
-            f.write(scan_output.stdout)
-        
-        print(f"Scan result saved to {file_path}")
-        input("\nPress Enter to continue...")
+        # Save the result to file
+        with open(f"{filename}.txt", "w") as f:
+            f.write(result.stdout)
 
 def view_history(data):
     clear_screen()
@@ -156,16 +158,6 @@ def view_history(data):
         print(f"║ {i}. {cmd}")
     print("╚═══════════════════════════════════════╝")
     input("\nPress Enter to return...")
-
-def update_tools_from_github():
-    clear_screen()
-    print("Updating tools from GitHub...")
-    try:
-        subprocess.run(['git', 'pull'], check=True)
-        print("Tools updated successfully.")
-    except subprocess.CalledProcessError as e:
-        print(f"Error updating tools: {e}")
-    input("\nPress Enter to continue...")
 
 def main():
     data = load_targets()
@@ -191,8 +183,6 @@ def main():
         elif choice == '7':
             view_history(data)
         elif choice == '8':
-            update_tools_from_github()
-        elif choice == '9':
             print("Exiting...")
             break
         else:
