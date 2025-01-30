@@ -42,7 +42,7 @@ Here’s a **detailed installation guide** for your Nmap Management Assistant Ne
    *(If using Git, otherwise download manually)*  
    ```bash
    git clone https://github.com/your-repo/nmap-assistant.git  
-   cd nmap-assistant  
+   cd NMAP-Advanced-Command  
    ```
 
 2️⃣ **Install Dependencies**  
@@ -52,7 +52,7 @@ Here’s a **detailed installation guide** for your Nmap Management Assistant Ne
 
 3️⃣ **Run the Tool**  
    ```bash
-   python nmap_manager.py  
+   python nmans.py  
    ```
 
 ---
