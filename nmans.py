@@ -20,7 +20,7 @@ BANNER = r"""
 def show_menu():
     clear_screen()
     print(BANNER)
-    print("""
+    print(""" 
 ╔══════════════════════════════╗
 ║ Main Menu                    ║
 ╠══════════════════════════════╣
@@ -31,7 +31,8 @@ def show_menu():
 ║ 5. Select Scan Type          ║
 ║ 6. Run Scan                  ║
 ║ 7. View Scan History         ║
-║ 8. Exit                      ║
+║ 8. Save Scan Results         ║
+║ 9. Exit                      ║
 ╚══════════════════════════════╝
 """)
 
@@ -142,6 +143,15 @@ def view_history(data):
     print("╚═══════════════════════════════════════╝")
     input("\nPress Enter to return...")
 
+def save_scan_results(data):
+    clear_screen()
+    file_path = input("Enter the file name to save the results (e.g., scan_results.txt): ").strip()
+    with open(file_path, 'w') as file:
+        for cmd in data['scan_history']:
+            file.write(f"{cmd}\n")
+    print(f"Scan results saved to {file_path}")
+    input("\nPress Enter to return...")
+
 def main():
     data = load_targets()
     current_scan_cmd = SCAN_PROFILES[1]['command']
@@ -166,6 +176,8 @@ def main():
         elif choice == '7':
             view_history(data)
         elif choice == '8':
+            save_scan_results(data)
+        elif choice == '9':
             print("Exiting...")
             break
         else:
