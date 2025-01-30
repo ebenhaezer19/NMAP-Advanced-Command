@@ -53,14 +53,15 @@ def show_menu():
 ╔══════════════════════════════╗
 ║ Main Menu                    ║
 ╠══════════════════════════════╣
-║ 1. Add Targets              ║
-║ 2. Edit Targets             ║
-║ 3. Delete Targets           ║
-║ 4. List Targets             ║
-║ 5. Select Scan Type         ║
-║ 6. Run Scan                 ║
-║ 7. View Scan History        ║
-║ 8. Exit                     ║
+║ 1. Add Targets               ║
+║ 2. Edit Targets              ║
+║ 3. Delete Targets            ║
+║ 4. List Targets              ║
+║ 5. Select Scan Type          ║
+║ 6. Run Scan                  ║
+║ 7. View Scan History         ║
+║ 8. Update This Gun           ║
+║ 9. Exit                      ║
 ╚══════════════════════════════╝
 """)
 
@@ -185,44 +186,20 @@ def run_scan(data, command):
         command = command.format(custom=f"-p {ports}", target="{target}", evasion=evasion_opts, vuln_script=vuln_script)
     else:
         command = command.format(custom="", target="{target}", evasion=evasion_opts, vuln_script=vuln_script)
-    
-    # Ask for file to save results
-    filename = input("Enter filename to save the result (without extension): ").strip()
-    if not filename:
-        filename = "scan_result"
-    
-    for target in selected:
-        cmd = command.format(target=target['address'])
-        data['scan_history'].append(cmd)
-        save_targets(data)
-        
-        print(f"\nRunning scan on {target['address']}")
-        print(f"Command: {cmd}\n")
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-        
-        print(result.stdout)
-        
-        with open(f"{filename}.txt", "a") as f:
-            f.write(f"\n{'='*50}\n")
-            f.write(f"Scan Results for {target['address']}\n")
-            f.write(f"{'='*50}\n")
-            f.write(result.stdout)
 
-def view_history(data):
-    clear_screen()
-    print("╔════════════ Scan History ════════════╗")
-    for i, cmd in enumerate(data['scan_history'], 1):
-        print(f"║ {i}. {cmd}")
-    print("╚═══════════════════════════════════════╝")
-    input("\nPress Enter to return...")
+    for target in selected:
+        full_command = command.format(target=target['address'])
+        print(f"Running scan for {target['address']}...")
+        subprocess.run(full_command.split())
+
+def git_pull_update():
+    os.system('git pull')
 
 def main():
     data = load_targets()
-    current_scan_cmd = SCAN_PROFILES[1]['command']
-    
     while True:
         show_menu()
-        choice = input("Select option: ").strip()
+        choice = input("\nChoose an option: ")
         
         if choice == '1':
             add_targets(data)
@@ -232,15 +209,16 @@ def main():
             delete_targets(data)
         elif choice == '4':
             list_targets(data)
-            input("\nPress Enter to continue...")
         elif choice == '5':
-            current_scan_cmd = select_scan_type()
+            scan_command = select_scan_type()
         elif choice == '6':
-            run_scan(data, current_scan_cmd)
+            run_scan(data, scan_command)
         elif choice == '7':
-            view_history(data)
+            # Placeholder for scan history
+            pass
         elif choice == '8':
-            print("Exiting...")
+            git_pull_update()
+        elif choice == '9':
             break
         else:
             print("Invalid choice!")
