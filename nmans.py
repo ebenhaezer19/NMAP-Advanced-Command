@@ -20,7 +20,7 @@ BANNER = r"""
 def show_menu():
     clear_screen()
     print(BANNER)
-    print(""" 
+    print("""
 ╔══════════════════════════════╗
 ║ Main Menu                    ║
 ╠══════════════════════════════╣
@@ -31,7 +31,7 @@ def show_menu():
 ║ 5. Select Scan Type          ║
 ║ 6. Run Scan                  ║
 ║ 7. View Scan History         ║
-║ 8. Save Scan Results         ║
+║ 8. Update Tools from GitHub  ║
 ║ 9. Exit                      ║
 ╚══════════════════════════════╝
 """)
@@ -129,11 +129,20 @@ def run_scan(data, command):
         data['scan_history'].append(cmd)
         save_targets(data)
         
-        # Run in new terminal window
-        subprocess.Popen([
-            'gnome-terminal', '--', 
-            'bash', '-c', f'{cmd}; echo; echo "Scan completed. Press enter to close..."; read'
-        ])
+        # Run scan and save output to a file
+        scan_output = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        
+        # Ask for custom filename
+        filename = input("Enter filename to save the result (without extension): ").strip()
+        if not filename:
+            filename = f"scan_{target['address']}"
+        
+        file_path = Path(f"{filename}.txt")
+        with open(file_path, 'w') as f:
+            f.write(scan_output.stdout)
+        
+        print(f"Scan result saved to {file_path}")
+        input("\nPress Enter to continue...")
 
 def view_history(data):
     clear_screen()
@@ -143,14 +152,15 @@ def view_history(data):
     print("╚═══════════════════════════════════════╝")
     input("\nPress Enter to return...")
 
-def save_scan_results(data):
+def update_tools_from_github():
     clear_screen()
-    file_path = input("Enter the file name to save the results (e.g., scan_results.txt): ").strip()
-    with open(file_path, 'w') as file:
-        for cmd in data['scan_history']:
-            file.write(f"{cmd}\n")
-    print(f"Scan results saved to {file_path}")
-    input("\nPress Enter to return...")
+    print("Updating tools from GitHub...")
+    try:
+        subprocess.run(['git', 'pull'], check=True)
+        print("Tools updated successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error updating tools: {e}")
+    input("\nPress Enter to continue...")
 
 def main():
     data = load_targets()
@@ -176,7 +186,7 @@ def main():
         elif choice == '7':
             view_history(data)
         elif choice == '8':
-            save_scan_results(data)
+            update_tools_from_github()
         elif choice == '9':
             print("Exiting...")
             break
