@@ -1,4 +1,4 @@
-Here’s a **detailed installation guide** for your Nmap Management Assistant Nexus tool, formatted for Discord:  
+Here’s a **detailed installation guide** for your Nmap Management Assistant Nexus tool  
 
 ---
 
